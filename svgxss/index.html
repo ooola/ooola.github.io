@@ -1,0 +1,28 @@
+<!-- http://www.brucelawson.co.uk/2010/a-minimal-html5-document/ -->
+
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<title>SVG XSS Examples</title>
+</head>
+<body>
+<h1>app.optimizely.com</h1>
+<p>The div below is as optimizely includes the users profile/avatar.</p>
+<div style="background-image: url(http://optimizely.s3.amazonaws.com/img/user/ola.nordstrom%40gmail.com/9afc80fbf17d4c84ab95e403c256a28e.svg)"> 
+  <p> Some Text </p>
+
+</div>
+
+<h1>Img src</h1>
+<p>img src include</p>
+<img src="./green-triangle.svg"/>
+
+<h1>Inline svg</h1>
+<svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
+  <!-- this JS wille execute; all others wont -->
+  <script>alert('XSS');</script> 
+</svg>
+</body>
+</html>
