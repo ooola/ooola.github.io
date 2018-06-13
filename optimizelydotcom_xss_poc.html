@@ -42,7 +42,7 @@
           window.opener.postMessage("===> Posted to Projects!!","*");
           var pid = projs[0].account_id;
           var oldjs = projs[0].project_javascript;
-          window.opener.postMessage("pid: ${pid} ===> oldjs: ${oldjs}","*");
+          /* window.opener.postMessage("pid: ${pid} ===> oldjs: ${oldjs}","*"); */
           fetch("https://app.optimizely.com/api/v1/projects/"+pid,{
             method: "PUT",
             body: JSON.stringify({id: pid, project_javascript:"/* added from www.optimizely.com */"+oldjs}),
