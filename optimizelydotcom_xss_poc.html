@@ -43,7 +43,7 @@
           var oldjs = projs[0].project_javascript;
           fetch("https://app.optimizely.com/api/v1/projects/"+pid,{
             method: "PUT",
-            body: JSON.stringify({id: pid, project_javascript:"/* added from www.optimizely.com */"+oldjs}),
+            body: JSON.stringify({id: pid, project_javascript:"/* added from www.smarthacker.xyz */"+oldjs}),
             credentials: "include",
             headers: {
               'x-csrf-token': csrfToken
